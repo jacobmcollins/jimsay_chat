@@ -7,5 +7,5 @@ if __name__ == '__main__':
     client.send('abcdefgh')
     data = client.receive()
     print(data.decode())
-    print('received', len(data), 'bytes')
+    print('received {} bytes'.format(len(data)))
     client.close()
