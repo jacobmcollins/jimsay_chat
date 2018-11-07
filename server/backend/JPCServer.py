@@ -1,13 +1,23 @@
 import socket
 import json
 from utl.jpc_parser.JPCProtocol import JPCProtocol
+import csv
 
 
 class JPCServer:
     def __init__(self):
+        self.whitelist = {}
+        self.build_whitelist()
+        print(self.whitelist)
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.bind(('', 27272))
         self.users = {}
+
+    def build_whitelist(self):
+        with open("pi_whitelist.txt", "r") as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            for row in csv_reader:
+                self.whitelist[row[0]] = int(row[1])
 
     def run(self):
         self.s.listen(1)
@@ -18,12 +28,21 @@ class JPCServer:
             data = conn.recv(1000000)
             js = json.loads(data.decode())
             self.process(js)
+            conn.send(data)
             conn.close()
 
     def process(self, data):
         mac_address = data['mac_address']
         opcode = data['opcode']
         message = data['message']
+        in_whitelist = False
+
+        for key, value in self.whitelist.items():
+            if mac_address == value:
+                in_whitelist = True
+
+        if not in_whitelist:
+            return JPCProtocol.ERROR_ILLEGAL_NAME
 
         switcher = {
             JPCProtocol.HELLO:     self.process_hello,
