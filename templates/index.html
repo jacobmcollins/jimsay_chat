@@ -1,28 +1,28 @@
 <!--from flask import Flask, render_template-->
 
 <!--<!DOCTYPE html>-->
+<!--<link rel="stylesheet" type="text/css" href="css/style.css">-->
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
 <html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <title>Welcome to Jimsay Private Chat!</title>
 </head>
-<body bgcolor="ADD8E6">
-<div>
+
+<body style="f; padding-left: 80px;" bgcolor= "#8e63dd" >
     <h2>Welcome to Jimsay Private Chat!</h2>
-    <form action="/sendMessage" method="POST">
+    <form action="/get_message" method="POST">
         <p>Send to:</p>
-    <!--<input type="" id="SendToLindsay" value="Lindsay" onclick="CheckRadio()">Lindsay-->
-    <!--<input type="radio" id="SendToJimmy" value="Jimmy" onclick="CheckRadio()">Jimmy-->
-        <select>
-            <option value="Jimmy">Jimmy</option>
-            <option value="Lindsay">Lindsay</option>
+        <select name="chooseRecipient">
+            <option name="Jimmy"   value="Jimmy"  >Jimmy</option>
+            <option name="Lindsay" value="Lindsay">Lindsay</option>
         </select>
         <br><br>
         <input type="text" id="MessageBox" name ="MessageBox" style="height:150px" size="50">
         <br><br>
         <input type="submit" id="Send" name="Send" value="Send">
     </form>
-</div>
 </body>
 </html>
 <!--
