@@ -6,12 +6,11 @@ class JPCClient:
     def __init__(self, server_address):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((server_address, 27272))
-        json_data = JPCProtocol(JPCProtocol.HELLO).to_json()
-        self.s.send(json_data.encode())
+        raw_data = JPCProtocol(JPCProtocol.HELLO).encode()
+        self.s.send(raw_data)
 
     def send(self, msg):
-        json_data = JPCProtocol(JPCProtocol.SEND, msg).to_json()
-        raw_data = json_data.encode()
+        raw_data = JPCProtocol(JPCProtocol.SEND, msg).encode()
         self.s.send(raw_data)
 
     def receive(self):
@@ -24,6 +23,3 @@ class JPCClient:
     def send_heartbeat(self):
         heartbeat = JPCProtocol(JPCProtocol.HEARTBEAT).to_json()
         self.s.send(heartbeat.encode())
-
-
-

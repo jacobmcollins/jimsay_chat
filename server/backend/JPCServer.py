@@ -9,6 +9,7 @@ import queue
 
 class JPCServer:
     def __init__(self):
+        self.active_users = []
         self.whitelist = {}
         self.build_whitelist()
         print(self.whitelist)
@@ -39,8 +40,10 @@ class JPCServer:
                 else:
                     data = s.recv(1024)
                     if data:
-                        # self.process(data)
-                        print(data)
+                        data_list = JPCProtocol.decode(data)
+                        for json_data in data_list:
+                            print(json_data)
+                            self.process(json.loads(json_data))
                         message_queues[s].put(data)
                         if s not in outputs:
                             outputs.append(s)
@@ -87,23 +90,33 @@ class JPCServer:
             JPCProtocol.ERROR:      self.process_error
         }
 
-        switcher[opcode](payload)
+        switcher[opcode](mac_address, payload)
 
-    def process_hello(self, payload):
+    def process_hello(self, mac_address, payload):
+        if not self.active_users.__contains__(mac_address):
+            self.active_users.append(mac_address)
         print('hello')
 
-    def process_heartbeat(self, payload):
+    def process_heartbeat(self, mac_address, payload):
         print('heartbeat')
 
-    def process_send(self, payload):
+    def process_send(self, mac_address, payload):
+        if not self.active_users.__contains__(mac_address):
+            return JPCProtocol.ERROR_UNKNOWN
         print('send')
 
-    def process_tell(self, payload):
+    def process_tell(self, mac_address, payload):
+        if not self.active_users.__contains__(mac_address):
+            return JPCProtocol.ERROR_UNKNOWN
         print('tell')
 
-    def process_error(self, payload):
+    def process_error(self, mac_address, payload):
+        if not self.active_users.__contains__(mac_address):
+            return JPCProtocol.ERROR_UNKNOWN
         print('error')
 
-    def process_none(self, payload):
+    def process_none(self, mac_address, payload):
+        if not self.active_users.__contains__(mac_address):
+            return JPCProtocol.ERROR_UNKNOWN
         print('else')
 

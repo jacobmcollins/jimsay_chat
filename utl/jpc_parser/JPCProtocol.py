@@ -7,8 +7,8 @@ class JPCProtocol:
     ERROR = 0x10000001
     HEARTBEAT = 0x10000002
     HELLO = 0x10000003
-    SEND = 0x10000001
-    TELL = 0x10000002
+    SEND = 0x10000004
+    TELL = 0x10000005
 
     # error codes
     ERROR_UNKNOWN = 0x20000001
@@ -35,3 +35,35 @@ class JPCProtocol:
             js['payload'] = self.message
 
         return json.dumps(js)
+
+    def encode(self):
+        raw_data = bytes([])
+        end = bytes([0x7E])
+        for byte in self.to_json().encode():
+            if byte == 0x7E or byte == 0x7D:
+                raw_data += bytes([0x7D])
+                raw_data += bytes([byte ^ 0x20])
+            else:
+                raw_data += bytes([byte])
+
+        return end + raw_data + end
+
+    def decode(raw_data):
+        data_array = []
+        data = b''
+        i = 0
+        while i < len(raw_data):
+            byte = raw_data[i]
+            if byte == 0x7E:
+                if data != b'':
+                    data_array.append(data.decode())
+                    data = b''
+            elif byte == 0x7D:
+                i += 1
+                byte = raw_data[i]
+                data += bytes([byte ^ 0x20])
+            else:
+                data += bytes([byte])
+            i += 1
+        return data_array
+
