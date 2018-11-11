@@ -25,7 +25,7 @@ def get_message():
     # if message:
     #     JPCServer.send_message(message)
 
-    JPCProtocol(JPCProtocol.SEND, messageFromHTML, messageRecipient)
+    JPCProtocol(JPCProtocol.SEND, messageRecipient, messageFromHTML)
     """server.send_message(messageFromHTML, messageRecipient, messageLength)"""
     print(messageFromHTML)
     print(messageRecipient)
@@ -46,9 +46,8 @@ def sendMessage():
     return render_template('index.html')
 
 
-@app.route('/index', methods=['GET'])
+@app.route('/', methods=['GET'])
 def index():
-
     return render_template('index.html')
 
 
