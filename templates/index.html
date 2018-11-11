@@ -10,7 +10,7 @@
     <title>Welcome to Jimsay Private Chat!</title>
 </head>
 
-<body style="f; padding-left: 80px;" bgcolor= "#8e63dd" >
+<body style="f; padding-left: 80px;" bgcolor= "#93bcff" >
     <h2>Welcome to Jimsay Private Chat!</h2>
     <form action="/get_message" method="POST">
         <p>Send to:</p>
@@ -23,6 +23,14 @@
         <br><br>
         <input type="submit" id="Send" name="Send" value="Send">
     </form>
+    <div style="border-style: solid; width: 500px">
+    <ul>
+      <li>{{ firstMessage }}</li>
+  {% for message in messages %}
+      <li>{{ message }} </li>
+  {% endfor %}
+    </ul>
+    </div>
 </body>
 </html>
 <!--
