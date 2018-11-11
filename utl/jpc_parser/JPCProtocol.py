@@ -19,20 +19,20 @@ class JPCProtocol:
     ERROR_ILLEGAL_NAME = 0x20000006
     ERROR_ILLEGAL_MESSAGE = 0x20000007
 
-    def __init__(self, opcode, message=None, mac_address=get_mac()):
+    def __init__(self, opcode, message=None):
         self.opcode = opcode
         self.message = message
-        self.mac_address = mac_address
 
     def to_json(self):
         js = {
             'opcode':      self.opcode,
-            'mac_address': self.mac_address,
             'payload':     None
         }
 
         if self.opcode == JPCProtocol.SEND:
             js['payload'] = self.message
+        elif self.opcode == JPCProtocol.HELLO:
+            js['payload'] = get_mac()
 
         return json.dumps(js)
 

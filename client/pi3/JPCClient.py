@@ -21,5 +21,5 @@ class JPCClient:
         self.s.close()
 
     def send_heartbeat(self):
-        heartbeat = JPCProtocol(JPCProtocol.HEARTBEAT).to_json()
-        self.s.send(heartbeat.encode())
+        raw_data = JPCProtocol(JPCProtocol.HEARTBEAT).encode()
+        self.s.send(raw_data)

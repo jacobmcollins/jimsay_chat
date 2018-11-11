@@ -3,16 +3,14 @@ import json
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 import csv
 import select
-import sys
 import queue
 
 
 class JPCServer:
     def __init__(self):
-        self.active_users = []
-        self.whitelist = {}
+        self.mac_to_name = {}
+        self.name_to_socket = {}
         self.build_whitelist()
-        print(self.whitelist)
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.bind(('', 27272))
 
@@ -20,7 +18,7 @@ class JPCServer:
         with open("pi_whitelist.txt", "r") as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:
-                self.whitelist[row[0]] = int(row[1])
+                self.mac_to_name[int(row[1])] = row[0]
 
     def run(self):
         self.s.listen(5)
@@ -43,7 +41,7 @@ class JPCServer:
                         data_list = JPCProtocol.decode(data)
                         for json_data in data_list:
                             print(json_data)
-                            self.process(json.loads(json_data))
+                            self.process(json.loads(json_data), s)
                         message_queues[s].put(data)
                         if s not in outputs:
                             outputs.append(s)
@@ -69,54 +67,48 @@ class JPCServer:
                 s.close()
                 del message_queues[s]
 
-    def process(self, data):
+    def process(self, data, s):
         opcode = data['opcode']
-        mac_address = data['mac_address']
         payload = data['payload']
-        in_whitelist = False
-
-        for key, value in self.whitelist.items():
-            if mac_address == value:
-                in_whitelist = True
-
-        if not in_whitelist:
-            return JPCProtocol.ERROR_ILLEGAL_NAME
 
         switcher = {
             JPCProtocol.HELLO:      self.process_hello,
             JPCProtocol.HEARTBEAT:  self.process_heartbeat,
-            JPCProtocol.SEND:       self.process_send,
-            JPCProtocol.TELL:       self.process_tell,
-            JPCProtocol.ERROR:      self.process_error
+            #JPCProtocol.SEND:       self.process_send,
+            #JPCProtocol.TELL:       self.process_tell,
+            #JPCProtocol.ERROR:      self.process_error
         }
 
-        switcher[opcode](mac_address, payload)
+        switcher[opcode](payload, s)
 
-    def process_hello(self, mac_address, payload):
-        if not self.active_users.__contains__(mac_address):
-            self.active_users.append(mac_address)
+    def process_hello(self, payload, s):
+        in_whitelist = False
+        for key, value in self.mac_to_name.items():
+            if key == payload:
+                in_whitelist = True
+
+        if in_whitelist:
+            self.name_to_socket[self.mac_to_name[payload]] = s
+
         print('hello')
 
-    def process_heartbeat(self, mac_address, payload):
+    def process_heartbeat(self, payload, s):
         print('heartbeat')
 
-    def process_send(self, mac_address, payload):
-        if not self.active_users.__contains__(mac_address):
-            return JPCProtocol.ERROR_UNKNOWN
+    def process_send(self, payload):
         print('send')
 
-    def process_tell(self, mac_address, payload):
-        if not self.active_users.__contains__(mac_address):
-            return JPCProtocol.ERROR_UNKNOWN
+    def process_tell(self, payload):
         print('tell')
 
-    def process_error(self, mac_address, payload):
-        if not self.active_users.__contains__(mac_address):
-            return JPCProtocol.ERROR_UNKNOWN
+    def process_error(self, payload):
         print('error')
 
-    def process_none(self, mac_address, payload):
-        if not self.active_users.__contains__(mac_address):
-            return JPCProtocol.ERROR_UNKNOWN
+    def process_none(self, payload):
         print('else')
+
+    def send_message(self, user, msg):
+        packet = JPCProtocol(JPCProtocol.SEND, msg).encode()
+        self.name_to_socket[user].send(packet)
+
 

@@ -7,11 +7,11 @@ app = Flask(__name__)
 def run_server():
     server = JPCServer()
     server.run()
+    server.send_message("lindsay", "abc")
 
 
 @app.route('/get_message', methods=['POST'])
 def get_message():
-
     messageFromHTML = request.form['MessageBox']
     messageRecipient = request.form['chooseRecipient']
     #
