@@ -38,6 +38,7 @@ class JPCServer:
 
     def run(self):
         self.s.listen(5)
+        threading.Thread(target=self.check_heartbeats).start()
         while True:
             connection, client_address = self.s.accept()
             print(connection)
@@ -46,26 +47,26 @@ class JPCServer:
 
     def handle(self, connection):
         running = True
-        while running:
-            data = connection.recv(1024)
-            if data:
-                data_list = JPCProtocol.decode(data)
-                for json_data in data_list:
-                    print(json_data)
-                    self.process(json.loads(json_data), connection)
-            running = self.check_heartbeats(connection)
+        try:
+            while running:
+                data = connection.recv(1024)
+                if data:
+                    data_list = JPCProtocol.decode(data)
+                    for json_data in data_list:
+                        print(json_data)
+                        self.process(json.loads(json_data), connection)
+        except ConnectionAbortedError:
+            print('Connection Aborted')
 
-    def check_heartbeats(self, connection):
-        for user in self.users:
-            now = time.time()
-            if user.connected and user.connection == connection:
-                elapsed = now - user.last_heartbeat
-                if elapsed > 5:
-                    print(connection)
-                    print('died')
-                    user.close(JPCProtocol.ERROR_TIMED_OUT)
-                    return False
-        return True
+    def check_heartbeats(self):
+        while True:
+            for user in self.users:
+                now = time.time()
+                if user.connected:
+                    elapsed = now - user.last_heartbeat
+                    if elapsed > 5:
+                        print('died')
+                        user.close(JPCProtocol.ERROR_TIMED_OUT)
 
     def process(self, data, connection):
         opcode = data['opcode']
@@ -90,6 +91,7 @@ class JPCServer:
     def process_hello(self, payload, s):
         x = self.get_user_by_mac(payload)
         if x:
+            print('hello')
             x.establish(s)
             x.update_heartbeat(time.time())
         else:
@@ -97,8 +99,11 @@ class JPCServer:
 
     def process_heartbeat(self, payload, s):
         x = self.get_user_by_mac(payload)
-        x.update_heartbeat(time.time())
-        print('heartbeat')
+        if x:
+            print('heartbeat')
+            x.update_heartbeat(time.time())
+        else:
+            return JPCProtocol.ERROR_ILLEGAL_NAME
 
     def process_send(self, payload):
         print('send')
