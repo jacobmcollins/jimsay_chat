@@ -7,8 +7,7 @@ import string
 app = Flask(__name__)
 
 
-def run_server():
-    server = JPCServer()
+def run_server(server):
     server.run()
     server.send_message("lindsay", "abc")
 
@@ -27,8 +26,9 @@ def get_message():
     messageLog = open("messageLog.txt", "a")
     messageLog.write("To " + messageRecipient + ": " + messageFromHTML + "\n")
 
-    JPCProtocol(JPCProtocol.SEND, messageFromHTML, messageRecipient)
+    #JPCProtocol(JPCProtocol.SEND, messageFromHTML, messageRecipient)
     """server.send_message(messageFromHTML, messageRecipient, messageLength)"""
+    server.send_message(messageFromHTML, messageRecipient)
 
     print(messageFromHTML)
     print(messageRecipient)
@@ -48,7 +48,6 @@ def index():
 
 
 if __name__ == '__main__':
-    t = threading.Thread(target=run_server)
-    t.daemon = True
-    t.start()
+    server = JPCServer()
+    threading.Thread(target=run_server, args=[server]).start()
     app.run()

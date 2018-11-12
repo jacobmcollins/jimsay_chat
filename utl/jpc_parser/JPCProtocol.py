@@ -4,35 +4,29 @@ import json
 
 class JPCProtocol:
     # opcodes
-    ERROR = 0x10000001
-    HEARTBEAT = 0x10000002
-    HELLO = 0x10000003
-    SEND = 0x10000004
-    TELL = 0x10000005
-    CLOSE = 0x10000006
+    HELLO = 0
+    CLOSE = 1
+    HEARTBEAT = 2
+    ERROR = 3
+    SEND = 4
+    TELL = 5
 
     # error codes
-    ERROR_UNKNOWN = 0x20000001
-    ERROR_ILLEGAL_OPCODE = 0x20000002
-    ERROR_ILLEGAL_LENGTH = 0x20000003
-    ERROR_WRONG_VERSION = 0x20000004
-    ERROR_NAME_EXISTS = 0x20000005
-    ERROR_ILLEGAL_NAME = 0x20000006
-    ERROR_ILLEGAL_MESSAGE = 0x20000007
-    ERROR_TIMED_OUT = 0x20000008
+    ERROR_UNKNOWN = 0
+    ERROR_TIMED_OUT = 1
 
-    def __init__(self, opcode, message=None):
+    def __init__(self, opcode, payload=None):
         self.opcode = opcode
-        self.message = message
+        self.payload = payload
 
     def to_json(self):
         js = {
             'opcode':      self.opcode,
-            'payload':     None
+            'payload':     self.payload
         }
 
         if self.opcode == JPCProtocol.SEND:
-            js['payload'] = self.message
+            js['payload'] = self.payload
         elif self.opcode == JPCProtocol.HELLO:
             js['payload'] = get_mac()
         elif self.opcode == JPCProtocol.HEARTBEAT:
@@ -60,7 +54,7 @@ class JPCProtocol:
             byte = raw_data[i]
             if byte == 0x7E:
                 if data != b'':
-                    data_array.append(data.decode())
+                    data_array.append(json.loads(data.decode()))
                     data = b''
             elif byte == 0x7D:
                 i += 1

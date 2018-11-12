@@ -1,5 +1,7 @@
 import socket
 from utl.jpc_parser.JPCProtocol import JPCProtocol
+import time
+import threading
 
 
 class JPCClient:
@@ -9,13 +11,48 @@ class JPCClient:
         JPCProtocol(JPCProtocol.HELLO).send(self.server)
 
     def run(self):
+        try:
+            t = threading.Thread(target=self.send_heartbeats)
+            t.start()
+            running = True
+            while running:
+                data = self.server.recv(1024)
+                if data:
+                    data_list = JPCProtocol.decode(data)
+                    for item in data_list:
+                        running = self.process(item)
+        except ConnectionResetError:
+            print('Connection Reset')
+
+    def send_heartbeats(self):
+        t = time.time()
         while True:
-            data = self.server.recv(1024)
-            if data:
-                print(data)
+            n = time.time()
+            if n - t > 3:
+                t = n
+                self.send_heartbeat()
 
+    def process(self, data):
+        opcode = data['opcode']
+        payload = data['payload']
 
+        switcher = {
+            JPCProtocol.TELL:       self.process_tell,
+            JPCProtocol.ERROR:      self.process_error
+        }
 
+        return switcher[opcode](payload)
+
+    def process_tell(self, payload):
+        message = payload['message']
+        print(message)
+        return True
+
+    def process_error(self, error_code):
+        if error_code == JPCProtocol.ERROR_TIMED_OUT:
+            self.close()
+            return False
+        return True
 
     def send(self, msg):
         JPCProtocol(JPCProtocol.SEND, msg).send(self.server)

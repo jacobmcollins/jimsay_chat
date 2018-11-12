@@ -16,15 +16,20 @@ class JPCServer:
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.bind(('', 27272))
 
-    def send_message(self, messageData, messageRecipient, messageLength):
+    def send_message(self, message, recipient):
+        length = len(message)
         # do some encryption
-        encrypted = self.shift_string(messageData, messageLength)
+        encrypted = self.shift_string(message, length)
         print(encrypted)
-        decrypted = self.shift_string(messageData, messageLength*-1)
+        decrypted = self.shift_string(message, length*-1)
         print(decrypted)
         """self.process_send(messageRecipient, messageData)"""
+        user = self.get_user_by_name(recipient)
+        if user and user.connected:
+            packet = JPCProtocol(JPCProtocol.TELL, {'recipient': recipient, 'message': message})
+            user.send(packet)
 
-    def shift_string(my_string, shift):
+    def shift_string(self, my_string, shift):
         alph_string = string.ascii_letters # string of both uppercase/lowercase letters
         return ''.join([chr(ord(c)+shift) if c in alph_string else c for c in my_string])
 
@@ -54,7 +59,7 @@ class JPCServer:
                     data_list = JPCProtocol.decode(data)
                     for json_data in data_list:
                         print(json_data)
-                        self.process(json.loads(json_data), connection)
+                        self.process(json_data, connection)
         except ConnectionAbortedError:
             print('Connection Aborted')
 
@@ -66,7 +71,7 @@ class JPCServer:
                     elapsed = now - user.last_heartbeat
                     if elapsed > 5:
                         print('died')
-                        user.close(JPCProtocol.ERROR_TIMED_OUT)
+                        user.close(JPCProtocol.ERROR, JPCProtocol.ERROR_TIMED_OUT)
 
     def process(self, data, connection):
         opcode = data['opcode']
@@ -75,17 +80,20 @@ class JPCServer:
         switcher = {
             JPCProtocol.HELLO:      self.process_hello,
             JPCProtocol.HEARTBEAT:  self.process_heartbeat,
-            #JPCProtocol.SEND:       self.process_send,
-            #JPCProtocol.TELL:       self.process_tell,
-            #JPCProtocol.ERROR:      self.process_error
         }
 
         switcher[opcode](payload, connection)
 
+    def get_user_by_name(self, name):
+        for user in self.users:
+            if str.lower(user.user) == str.lower(name):
+                return user
+        return None
+
     def get_user_by_mac(self, mac_address):
-        for item in self.users:
-            if item.mac_address == mac_address:
-                return item
+        for user in self.users:
+            if user.mac_address == mac_address:
+                return user
         return None
 
     def process_hello(self, payload, s):
@@ -104,21 +112,5 @@ class JPCServer:
             x.update_heartbeat(time.time())
         else:
             return JPCProtocol.ERROR_ILLEGAL_NAME
-
-    def process_send(self, payload):
-        print('send')
-
-    def process_tell(self, payload):
-        print('tell')
-
-    def process_error(self, payload):
-        print('error')
-
-    def process_none(self, payload):
-        print('else')
-
-    def send_message(self, user, msg):
-        packet = JPCProtocol(JPCProtocol.SEND, msg).encode()
-        self.name_to_socket[user].send(packet)
 
 

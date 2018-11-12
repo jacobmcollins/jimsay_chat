@@ -16,10 +16,14 @@ class JPCUser:
     def update_heartbeat(self, time):
         self.last_heartbeat = time
 
-    def close(self, opcode=JPCProtocol.CLOSE):
-        JPCProtocol(opcode).send(self.connection)
+    def close(self, opcode=JPCProtocol.CLOSE, payload=None):
+        JPCProtocol(opcode, payload).send(self.connection)
         self.connection.close()
         self.connection = None
         self.last_heartbeat = None
         self.connected = False
+
+    def send(self, packet):
+        if self.connected:
+            packet.send(self.connection)
 
