@@ -1,20 +1,20 @@
-import socket
-import json
-from utl.jpc_parser.JPCProtocol import JPCProtocol
 import csv
-import select
-import queue
+import json
+import threading
+import time
+import socket
 import string
+
+from server.backend.JPCUser import JPCUser
+from utl.jpc_parser.JPCProtocol import JPCProtocol
 
 
 class JPCServer:
     def __init__(self):
-        self.mac_to_name = {}
-        self.name_to_socket = {}
+        self.users = []
         self.build_whitelist()
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.bind(('', 27272))
-
 
     def send_message(self, messageData, messageRecipient, messageLength):
         # do some encryption
@@ -24,66 +24,50 @@ class JPCServer:
         print(decrypted)
         """self.process_send(messageRecipient, messageData)"""
 
-
     def shift_string(my_string, shift):
         alph_string = string.ascii_letters # string of both uppercase/lowercase letters
         return ''.join([chr(ord(c)+shift) if c in alph_string else c for c in my_string])
-
 
     def build_whitelist(self):
         with open("pi_whitelist.txt", "r") as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:
-                self.mac_to_name[int(row[1])] = row[0]
+                name = row[0]
+                mac = row[1]
+                self.users.append(JPCUser(name, int(mac)))
 
     def run(self):
         self.s.listen(5)
-        inputs = [self.s]
-        outputs = []
-        message_queues = {}
+        while True:
+            connection, client_address = self.s.accept()
+            print(connection)
+            print(client_address)
+            threading.Thread(target=self.handle, args=[connection]).start()
 
-        while inputs:
-            readable, writable, exceptional = select.select(
-                inputs, outputs, inputs)
-            for s in readable:
-                if s is self.s:
-                    connection, client_address = s.accept()
-                    connection.setblocking(0)
-                    inputs.append(connection)
-                    message_queues[connection] = queue.Queue()
-                else:
-                    data = s.recv(1024)
-                    if data:
-                        data_list = JPCProtocol.decode(data)
-                        for json_data in data_list:
-                            print(json_data)
-                            self.process(json.loads(json_data), s)
-                        message_queues[s].put(data)
-                        if s not in outputs:
-                            outputs.append(s)
-                    else:
-                        if s in outputs:
-                            outputs.remove(s)
-                        inputs.remove(s)
-                        s.close()
-                        del message_queues[s]
+    def handle(self, connection):
+        running = True
+        while running:
+            data = connection.recv(1024)
+            if data:
+                data_list = JPCProtocol.decode(data)
+                for json_data in data_list:
+                    print(json_data)
+                    self.process(json.loads(json_data), connection)
+            running = self.check_heartbeats(connection)
 
-            for s in writable:
-                try:
-                    next_msg = message_queues[s].get_nowait()
-                except queue.Empty:
-                    outputs.remove(s)
-                else:
-                    s.send(next_msg)
+    def check_heartbeats(self, connection):
+        for user in self.users:
+            now = time.time()
+            if user.connected and user.connection == connection:
+                elapsed = now - user.last_heartbeat
+                if elapsed > 5:
+                    print(connection)
+                    print('died')
+                    user.close(JPCProtocol.ERROR_TIMED_OUT)
+                    return False
+        return True
 
-            for s in exceptional:
-                inputs.remove(s)
-                if s in outputs:
-                    outputs.remove(s)
-                s.close()
-                del message_queues[s]
-
-    def process(self, data, s):
+    def process(self, data, connection):
         opcode = data['opcode']
         payload = data['payload']
 
@@ -95,20 +79,25 @@ class JPCServer:
             #JPCProtocol.ERROR:      self.process_error
         }
 
-        switcher[opcode](payload, s)
+        switcher[opcode](payload, connection)
+
+    def get_user_by_mac(self, mac_address):
+        for item in self.users:
+            if item.mac_address == mac_address:
+                return item
+        return None
 
     def process_hello(self, payload, s):
-        in_whitelist = False
-        for key, value in self.mac_to_name.items():
-            if key == payload:
-                in_whitelist = True
-
-        if in_whitelist:
-            self.name_to_socket[self.mac_to_name[payload]] = s
-
-        print('hello')
+        x = self.get_user_by_mac(payload)
+        if x:
+            x.establish(s)
+            x.update_heartbeat(time.time())
+        else:
+            return JPCProtocol.ERROR_ILLEGAL_NAME
 
     def process_heartbeat(self, payload, s):
+        x = self.get_user_by_mac(payload)
+        x.update_heartbeat(time.time())
         print('heartbeat')
 
     def process_send(self, payload):

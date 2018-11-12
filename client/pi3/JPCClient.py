@@ -6,12 +6,10 @@ class JPCClient:
     def __init__(self, server_address):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((server_address, 27272))
-        raw_data = JPCProtocol(JPCProtocol.HELLO).encode()
-        self.s.send(raw_data)
+        JPCProtocol(JPCProtocol.HELLO).send(self.s)
 
     def send(self, msg):
-        raw_data = JPCProtocol(JPCProtocol.SEND, msg).encode()
-        self.s.send(raw_data)
+        JPCProtocol(JPCProtocol.SEND, msg).send(self.s)
 
     def receive(self):
         recv_data = self.s.recv(10000000)
@@ -21,5 +19,4 @@ class JPCClient:
         self.s.close()
 
     def send_heartbeat(self):
-        raw_data = JPCProtocol(JPCProtocol.HEARTBEAT).encode()
-        self.s.send(raw_data)
+        JPCProtocol(JPCProtocol.HEARTBEAT).send(self.s)

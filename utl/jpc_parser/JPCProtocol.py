@@ -9,6 +9,7 @@ class JPCProtocol:
     HELLO = 0x10000003
     SEND = 0x10000004
     TELL = 0x10000005
+    CLOSE = 0x10000006
 
     # error codes
     ERROR_UNKNOWN = 0x20000001
@@ -18,6 +19,7 @@ class JPCProtocol:
     ERROR_NAME_EXISTS = 0x20000005
     ERROR_ILLEGAL_NAME = 0x20000006
     ERROR_ILLEGAL_MESSAGE = 0x20000007
+    ERROR_TIMED_OUT = 0x20000008
 
     def __init__(self, opcode, message=None):
         self.opcode = opcode
@@ -32,6 +34,8 @@ class JPCProtocol:
         if self.opcode == JPCProtocol.SEND:
             js['payload'] = self.message
         elif self.opcode == JPCProtocol.HELLO:
+            js['payload'] = get_mac()
+        elif self.opcode == JPCProtocol.HEARTBEAT:
             js['payload'] = get_mac()
 
         return json.dumps(js)
@@ -67,3 +71,6 @@ class JPCProtocol:
             i += 1
         return data_array
 
+    def send(self, sock):
+        raw_data = self.encode()
+        sock.send(raw_data)
