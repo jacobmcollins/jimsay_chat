@@ -27,10 +27,10 @@ def shift_string(my_string, shift):
 def get_message():
     messageFromHTML = request.form['MessageBox']
     messageRecipient = request.form['chooseRecipient']
-    messageImage = request.files['MessageImage']
+    #messageImage = request.files['MessageImage']
 
-    if messageImage :
-      messageImage.save(os.path.join(app.instance_path, 'Uploads', secure_filename(messageImage.filename)))
+    #if messageImage :
+      #messageImage.save(os.path.join(app.instance_path, 'Uploads', secure_filename(messageImage.filename)))
 
     messages = []
     messageLog = open("messageLog.txt", "a")
