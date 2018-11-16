@@ -1,11 +1,17 @@
 from server.backend.JPCServer import JPCServer
 from utl.jpc_parser.JPCProtocol import JPCProtocol
-from flask import Flask, render_template, request, redirect
-import threading
-import csv
-import string
-app = Flask(__name__)
+from flask import Flask, render_template, request, redirect, url_for
+from werkzeug import secure_filename
 
+import threading
+import string
+import os.path
+app = Flask(__name__)
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLD = '/Users/jameskraemer/Documents/JPC/server/gui/Uploads'
+UPLOAD_FOLDER = os.path.join(APP_ROOT, UPLOAD_FOLD)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(os.path.join(app.instance_path, 'Uploads'), exist_ok=True)
 
 def run_server():
     server = JPCServer()
@@ -19,10 +25,13 @@ def shift_string(my_string, shift):
 
 @app.route('/get_message', methods=['POST'])
 def get_message():
-
     messageFromHTML = request.form['MessageBox']
     messageRecipient = request.form['chooseRecipient']
-    messageLength = len(messageFromHTML)
+    messageImage = request.files['MessageImage']
+
+    if messageImage :
+      messageImage.save(os.path.join(app.instance_path, 'Uploads', secure_filename(messageImage.filename)))
+
     messages = []
     messageLog = open("messageLog.txt", "a")
     messageLog.write("To " + messageRecipient + ": " + messageFromHTML + "\n")

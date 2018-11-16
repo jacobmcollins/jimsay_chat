@@ -12,7 +12,7 @@
 
 <body style="f; padding-left: 80px;" bgcolor= "#93bcff" >
     <h2>Welcome to Jimsay Private Chat!</h2>
-    <form action="/get_message" method="POST">
+    <form action="/get_message" method="POST" enctype = "multipart/form-data">
         <p>Send to:</p>
         <select name="chooseRecipient">
             <option name="Jimmy"   value="Jimmy"  >Jimmy</option>
@@ -20,9 +20,12 @@
         </select>
         <br><br>
         <input type="text" id="MessageBox" name ="MessageBox" style="height:150px" size="50">
+        <p>Or upload an image:</p>
+        <input type="file" id="MessageImage" name="MessageImage">
         <br><br>
         <input type="submit" id="Send" name="Send" value="Send">
     </form>
+
     <div style="border-style: solid; width: 500px">
     <ul>
       <li>{{ firstMessage }}</li>
