@@ -13,9 +13,9 @@ UPLOAD_FOLDER = os.path.join(APP_ROOT, UPLOAD_FOLD)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(os.path.join(app.instance_path, 'Uploads'), exist_ok=True)
 
-def run_server():
-    server = JPCServer()
+def run_server(server):
     server.run()
+    server.send_message("lindsay", "abc")
 
 
 def shift_string(my_string, shift):
@@ -27,18 +27,18 @@ def shift_string(my_string, shift):
 def get_message():
     messageFromHTML = request.form['MessageBox']
     messageRecipient = request.form['chooseRecipient']
-    messageImage = request.files['MessageImage']
+    #messageImage = request.files['MessageImage']
 
-    if messageImage :
-      messageImage.save(os.path.join(app.instance_path, 'Uploads', secure_filename(messageImage.filename)))
+    #if messageImage :
+      #messageImage.save(os.path.join(app.instance_path, 'Uploads', secure_filename(messageImage.filename)))
 
     messages = []
     messageLog = open("messageLog.txt", "a")
     messageLog.write("To " + messageRecipient + ": " + messageFromHTML + "\n")
 
-    JPCProtocol(JPCProtocol.SEND, messageFromHTML, messageRecipient)
-
+    #JPCProtocol(JPCProtocol.SEND, messageFromHTML, messageRecipient)
     """server.send_message(messageFromHTML, messageRecipient, messageLength)"""
+    server.send_message(messageFromHTML, messageRecipient)
 
     print(messageFromHTML)
     print(messageRecipient)
@@ -52,14 +52,12 @@ def get_message():
     return render_template('index.html', messages=messages[0:10], firstMessage="To " + messageRecipient + ": " + messageFromHTML + "\n")
 
 
-@app.route('/index', methods=['GET'])
+@app.route('/', methods=['GET'])
 def index():
-
     return render_template('index.html')
 
 
 if __name__ == '__main__':
-    t = threading.Thread(target=run_server)
-    t.daemon = True
-    t.start()
+    server = JPCServer()
+    threading.Thread(target=run_server, args=[server]).start()
     app.run()
