@@ -2,6 +2,7 @@ import socket
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 import time
 import threading
+import tkinter as tk
 
 
 class JPCClient:
