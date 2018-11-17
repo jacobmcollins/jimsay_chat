@@ -38,7 +38,8 @@ class JPCClient:
 
         switcher = {
             JPCProtocol.TELL:       self.process_tell,
-            JPCProtocol.ERROR:      self.process_error
+            JPCProtocol.ERROR:      self.process_error,
+            JPCProtocol.HEARTBEAT:   self.process_heartbeat
         }
 
         return switcher[opcode](payload)
@@ -52,6 +53,10 @@ class JPCClient:
         if error_code == JPCProtocol.ERROR_TIMED_OUT:
             self.close()
             return False
+        return True
+
+    def process_heartbeat(self, payload):
+        print("heartbeat")
         return True
 
     def send(self, msg):

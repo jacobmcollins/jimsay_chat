@@ -14,6 +14,7 @@ class JPCServer:
         self.build_whitelist()
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.bind(('', 27272))
+        threading.Thread(target=self.send_heartbeats).start()
 
     def send_message(self, message, recipient):
         length = len(message)
@@ -27,6 +28,19 @@ class JPCServer:
         if user and user.connected:
             packet = JPCProtocol(JPCProtocol.TELL, {'recipient': recipient, 'message': message})
             user.send(packet)
+
+    def send_heartbeats(self):
+        t = time.time()
+        while True:
+            n = time.time()
+            if n - t > 3:
+                t = n
+                for user in self.users:
+                    if user.connected:
+                        self.send_heartbeat(user)
+
+    def send_heartbeat(self, user):
+        JPCProtocol(JPCProtocol.HEARTBEAT).send(user.connection)
 
     def shift_string(self, my_string, shift):
         alph_string = string.ascii_letters # string of both uppercase/lowercase letters
