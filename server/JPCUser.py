@@ -53,16 +53,16 @@ class JPCUserList:
             return False
 
     def tx_rx_heartbeats(self):
+        t = time.time()
         while True:
-            for user in self.users:
-                now = time.time()
-                if user.connected:
-                    elapsed = now - user.last_heartbeat
-                    if elapsed >= JPCProtocol.HEARTBEAT_INTERVAL:
+            n = time.time()
+            if n - t >= JPCProtocol.HEARTBEAT_INTERVAL:
+                t = n
+                for user in self.users:
+                    if user.connected:
                         JPCProtocol(JPCProtocol.HEARTBEAT).send(user.connection)
-                    if elapsed >= JPCProtocol.HEARTBEAT_TIMEOUT:
-                        print('died')
-                        user.close(JPCProtocol.ERROR, JPCProtocol.ERROR_TIMED_OUT)
+                        if t - user.last_heartbeat >= JPCProtocol.HEARTBEAT_TIMEOUT:
+                            print('died')
 
 class JPCUser:
     def __init__(self, user, mac_address):
