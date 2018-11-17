@@ -30,7 +30,7 @@ def get_message():
     #messageImage = request.files['MessageImage']
 
     #if messageImage :
-      #messageImage.save(os.path.join(app.instance_path, 'Uploads', secure_filename(messageImage.filename)))
+    #    messageImage.save(os.path.join(app.instance_path, 'Uploads', secure_filename(messageImage.filename)))
 
     messages = []
     messageLog = open("messageLog.txt", "a")

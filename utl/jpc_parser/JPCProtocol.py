@@ -1,5 +1,6 @@
 from uuid import getnode as get_mac
 import json
+import crc16
 
 
 class JPCProtocol:
@@ -35,9 +36,12 @@ class JPCProtocol:
         return json.dumps(js)
 
     def encode(self):
+        data = self.to_json().encode()
+        crc = crc16.crc16xmodem(data).to_bytes(length=2, byteorder='little')
+        data += crc
         raw_data = bytes([])
         end = bytes([0x7E])
-        for byte in self.to_json().encode():
+        for byte in data:
             if byte == 0x7E or byte == 0x7D:
                 raw_data += bytes([0x7D])
                 raw_data += bytes([byte ^ 0x20])
@@ -54,7 +58,9 @@ class JPCProtocol:
             byte = raw_data[i]
             if byte == 0x7E:
                 if data != b'':
-                    data_array.append(json.loads(data.decode()))
+                    crc = crc16.crc16xmodem(data[:-2]).to_bytes(length=2, byteorder='little')
+                    if crc == data[-2:]:
+                        data_array.append(json.loads(data[:-2].decode()))
                     data = b''
             elif byte == 0x7D:
                 i += 1
