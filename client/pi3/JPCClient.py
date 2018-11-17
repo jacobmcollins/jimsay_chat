@@ -2,6 +2,7 @@ import socket
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 import time
 import threading
+from tkinter import *
 
 
 class JPCClient:
@@ -9,6 +10,14 @@ class JPCClient:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.connect((server_address, JPCProtocol.STANDARD_PORT))
         JPCProtocol(JPCProtocol.HELLO).send(self.server)
+        self.root = Tk()
+        self.root.attributes("-fullscreen", True)
+        self.var = StringVar()
+        self.text = Label(self.root, textvariable=self.var)
+        self.text.pack()
+        self.var.set("hello")
+        threading.Thread(target=self.run).start()
+        self.root.mainloop()
 
     def run(self):
         try:
@@ -48,6 +57,7 @@ class JPCClient:
     def process_tell(self, payload):
         message = payload['message']
         print(message)
+        self.var.set(message)
         return True
 
     def process_error(self, error_code):
