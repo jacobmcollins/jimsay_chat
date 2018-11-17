@@ -1,6 +1,8 @@
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 import time
 import csv
+import os
+
 
 class JPCUserList:
     def __init__(self, whitelist=None):
@@ -9,6 +11,7 @@ class JPCUserList:
             self.build_whitelist(whitelist)
 
     def build_whitelist(self, whitelist):
+        print(os.getcwd())
         with open(whitelist, "r") as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:

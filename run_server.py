@@ -13,7 +13,7 @@ os.makedirs(os.path.join(app.instance_path, 'Uploads'), exist_ok=True)
 
 def run_server(server):
     server.run()
-    server.send_message("lindsay", "abc")
+    #server.send_message("lindsay", "abc")
 
 
 def shift_string(my_string, shift):
