@@ -16,7 +16,7 @@ class JPCClient:
             t.start()
             running = True
             while running:
-                data = self.server.recv(1024)
+                data = self.server.recv(64000)
                 if data:
                     data_list = JPCProtocol.decode(data)
                     for item in data_list:

@@ -19,10 +19,10 @@ class JPCServer:
     def send_message(self, message, recipient):
         length = len(message)
         # do some encryption
-        encrypted = self.shift_string(message, length)
-        print(encrypted)
-        decrypted = self.shift_string(message, length*-1)
-        print(decrypted)
+        #encrypted = self.shift_string(message, length)
+        #print(encrypted)
+        #decrypted = self.shift_string(message, length*-1)
+        #print(decrypted)
         """self.process_send(messageRecipient, messageData)"""
         user = self.get_user_by_name(recipient)
         if user and user.connected:
@@ -54,7 +54,7 @@ class JPCServer:
         running = True
         try:
             while running:
-                data = connection.recv(1024)
+                data = connection.recv(64000)
                 if data:
                     data_list = JPCProtocol.decode(data)
                     for json_data in data_list:
