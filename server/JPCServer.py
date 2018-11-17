@@ -11,7 +11,7 @@ class JPCServer:
     def __init__(self):
         self.users = JPCUserList("pi_whitelist.txt")
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connection.bind(('', 27272))
+        self.connection.bind(('', JPCProtocol.STANDARD_PORT))
         threading.Thread(target=self.send_heartbeats).start()
 
     def send_message(self, message, recipient):

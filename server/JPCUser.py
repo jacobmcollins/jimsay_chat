@@ -60,7 +60,6 @@ class JPCUserList:
                         user.close(JPCProtocol.ERROR, JPCProtocol.ERROR_TIMED_OUT)
 
 
-
 class JPCUser:
     def __init__(self, user, mac_address):
         self.user = user
