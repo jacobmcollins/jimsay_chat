@@ -13,7 +13,7 @@ class JPCClient:
         self.root = Tk()
         self.root.attributes("-fullscreen", True)
         self.var = StringVar()
-        self.text = Label(self.root, textvariable=self.var)
+        self.text = Label(self.root, textvariable=self.var,font=("Courier", 50), wraplength=500)
         self.text.pack()
         self.var.set("hello")
         threading.Thread(target=self.run).start()
@@ -53,11 +53,21 @@ class JPCClient:
         }
 
         return switcher[opcode](payload)
+    def flash_screen(self, color):
+        self.root.configure(background=color)
+
 
     def process_tell(self, payload):
         message = payload['message']
-        print(message)
         self.var.set(message)
+        for i in range(0,3):
+            self.flash_screen("black")
+            time.sleep(.5)
+            self.flash_screen("red")
+            time.sleep(.5)
+        self.flash_screen("grey")
+
+       #print(message)
         return True
 
     def process_error(self, error_code):
