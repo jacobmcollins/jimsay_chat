@@ -1,7 +1,5 @@
-from server.backend.JPCServer import JPCServer
-from utl.jpc_parser.JPCProtocol import JPCProtocol
-from flask import Flask, render_template, request, redirect, url_for
-from werkzeug import secure_filename
+from server.JPCServer import JPCServer
+from flask import Flask, render_template, request
 
 import threading
 import string

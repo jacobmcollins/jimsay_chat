@@ -1,11 +1,10 @@
 import csv
-import json
 import threading
 import time
 import socket
 import string
 
-from server.backend.JPCUser import JPCUser
+from server.JPCUser import JPCUser
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 
 
