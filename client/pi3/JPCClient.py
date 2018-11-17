@@ -7,7 +7,7 @@ import threading
 class JPCClient:
     def __init__(self, server_address):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.connect((server_address, 27272))
+        self.server.connect((server_address, JPCProtocol.STANDARD_PORT))
         JPCProtocol(JPCProtocol.HELLO).send(self.server)
 
     def run(self):
@@ -28,11 +28,12 @@ class JPCClient:
         t = time.time()
         while True:
             n = time.time()
-            if n - t > 3:
+            if n - t > JPCProtocol.HEARTBEAT_INTERVAL:
                 t = n
                 self.send_heartbeat()
 
     def process(self, data):
+        print(data)
         opcode = data['opcode']
         payload = data['payload']
 

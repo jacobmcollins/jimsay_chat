@@ -16,6 +16,11 @@ class JPCProtocol:
     ERROR_UNKNOWN = 0
     ERROR_TIMED_OUT = 1
 
+    # misc
+    HEARTBEAT_INTERVAL = 1
+    HEARTBEAT_TIMEOUT = 5
+    STANDARD_PORT = 27272
+
     def __init__(self, opcode, payload=None):
         self.opcode = opcode
         self.payload = payload
