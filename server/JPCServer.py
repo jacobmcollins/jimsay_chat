@@ -12,7 +12,7 @@ class JPCServer:
         self.users = JPCUserList("pi_whitelist.txt")
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection.bind(('', JPCProtocol.STANDARD_PORT))
-        threading.Thread(target=self.send_heartbeats).start()
+        threading.Thread(target=self.users.tx_rx_heartbeats).start()
 
     def send_message(self, message, recipient):
         length = len(message)
@@ -22,14 +22,6 @@ class JPCServer:
         #decrypted = self.shift_string(message, length*-1)
         #print(decrypted)
         self.users.send_message(message, recipient)
-
-    def send_heartbeats(self):
-        t = time.time()
-        while True:
-            n = time.time()
-            if n - t > 3:
-                t = n
-                self.users.tx_rx_heartbeats()
 
     def shift_string(self, my_string, shift):
         alph_string = string.ascii_letters # string of both uppercase/lowercase letters
@@ -68,14 +60,7 @@ class JPCServer:
         switcher[opcode](payload, connection)
 
     def process_hello(self, payload, s):
-        x = self.users.get_by_mac(payload)
-
-        if x:
-            print('hello')
-            x.establish(s)
-            x.update_heartbeat(time.time())
-        else:
-            return JPCProtocol.ERROR_ILLEGAL_NAME
+        self.users.establish(payload, s)
 
     def process_heartbeat(self, payload, s):
         self.users.update_heartbeat(payload)

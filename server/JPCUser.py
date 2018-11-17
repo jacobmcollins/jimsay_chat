@@ -20,6 +20,11 @@ class JPCUserList:
         user = JPCUser(name, mac)
         self.users.append(user)
 
+    def establish(self, mac, socket, t=time.time()):
+        user = self.get_by_mac(mac)
+        user.establish(socket)
+        user.update_heartbeat(t)
+
     def get_by_name(self, name):
         for user in self.users:
             if str.lower(user.user) == str.lower(name):
@@ -58,7 +63,6 @@ class JPCUserList:
                     if elapsed >= JPCProtocol.HEARTBEAT_TIMEOUT:
                         print('died')
                         user.close(JPCProtocol.ERROR, JPCProtocol.ERROR_TIMED_OUT)
-
 
 class JPCUser:
     def __init__(self, user, mac_address):

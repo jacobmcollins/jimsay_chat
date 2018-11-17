@@ -12,11 +12,11 @@ class JPCClient:
 
     def run(self):
         try:
-            t = threading.Thread(target=self.send_heartbeats)
-            t.start()
+            threading.Thread(target=self.send_heartbeats).start()
             running = True
             while running:
                 data = self.server.recv(64000)
+                print(data)
                 if data:
                     data_list = JPCProtocol.decode(data)
                     for item in data_list:
@@ -28,7 +28,7 @@ class JPCClient:
         t = time.time()
         while True:
             n = time.time()
-            if n - t > JPCProtocol.HEARTBEAT_INTERVAL:
+            if n - t >= JPCProtocol.HEARTBEAT_INTERVAL:
                 t = n
                 self.send_heartbeat()
 

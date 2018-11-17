@@ -17,7 +17,7 @@ class JPCProtocol:
     ERROR_TIMED_OUT = 1
 
     # misc
-    HEARTBEAT_INTERVAL = 1
+    HEARTBEAT_INTERVAL = 3
     HEARTBEAT_TIMEOUT = 5
     STANDARD_PORT = 27272
 
