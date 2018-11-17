@@ -1,19 +1,18 @@
-import csv
 import threading
 import time
 import socket
 import string
 
-from server.JPCUser import JPCUser
+from server.JPCUser import JPCUser, JPCUserList
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 
 
 class JPCServer:
     def __init__(self):
-        self.users = []
-        self.build_whitelist()
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.bind(('', 27272))
+        self.users = JPCUserList("pi_whitelist.txt")
+        self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.connection.bind(('', JPCProtocol.STANDARD_PORT))
+        threading.Thread(target=self.users.tx_rx_heartbeats).start()
 
     def send_message(self, message, recipient):
         length = len(message)
@@ -22,29 +21,16 @@ class JPCServer:
         #print(encrypted)
         #decrypted = self.shift_string(message, length*-1)
         #print(decrypted)
-        """self.process_send(messageRecipient, messageData)"""
-        user = self.get_user_by_name(recipient)
-        if user and user.connected:
-            packet = JPCProtocol(JPCProtocol.TELL, {'recipient': recipient, 'message': message})
-            user.send(packet)
+        self.users.send_message(message, recipient)
 
     def shift_string(self, my_string, shift):
         alph_string = string.ascii_letters # string of both uppercase/lowercase letters
         return ''.join([chr(ord(c)+shift) if c in alph_string else c for c in my_string])
 
-    def build_whitelist(self):
-        with open("pi_whitelist.txt", "r") as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            for row in csv_reader:
-                name = row[0]
-                mac = row[1]
-                self.users.append(JPCUser(name, int(mac)))
-
     def run(self):
-        self.s.listen(5)
-        threading.Thread(target=self.check_heartbeats).start()
+        self.connection.listen(5)
         while True:
-            connection, client_address = self.s.accept()
+            connection, client_address = self.connection.accept()
             print(connection)
             print(client_address)
             threading.Thread(target=self.handle, args=[connection]).start()
@@ -62,16 +48,6 @@ class JPCServer:
         except ConnectionAbortedError:
             print('Connection Aborted')
 
-    def check_heartbeats(self):
-        while True:
-            for user in self.users:
-                now = time.time()
-                if user.connected:
-                    elapsed = now - user.last_heartbeat
-                    if elapsed > 5:
-                        print('died')
-                        user.close(JPCProtocol.ERROR, JPCProtocol.ERROR_TIMED_OUT)
-
     def process(self, data, connection):
         opcode = data['opcode']
         payload = data['payload']
@@ -83,33 +59,9 @@ class JPCServer:
 
         switcher[opcode](payload, connection)
 
-    def get_user_by_name(self, name):
-        for user in self.users:
-            if str.lower(user.user) == str.lower(name):
-                return user
-        return None
-
-    def get_user_by_mac(self, mac_address):
-        for user in self.users:
-            if user.mac_address == mac_address:
-                return user
-        return None
-
     def process_hello(self, payload, s):
-        x = self.get_user_by_mac(payload)
-        if x:
-            print('hello')
-            x.establish(s)
-            x.update_heartbeat(time.time())
-        else:
-            return JPCProtocol.ERROR_ILLEGAL_NAME
+        self.users.establish(payload, s)
 
     def process_heartbeat(self, payload, s):
-        x = self.get_user_by_mac(payload)
-        if x:
-            print('heartbeat')
-            x.update_heartbeat(time.time())
-        else:
-            return JPCProtocol.ERROR_ILLEGAL_NAME
-
+        self.users.update_heartbeat(payload)
 
