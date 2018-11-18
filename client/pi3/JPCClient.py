@@ -5,19 +5,43 @@ import threading
 from tkinter import *
 
 
+class JPCClientGUI:
+    def __init__(self):
+        self.root = Tk()
+        #self.root.attributes("-fullscreen", True)
+        self.message_text = StringVar()
+        self.message_text.set("Welcome")
+        self.configure_widgets()
+
+    def configure_widgets(self):
+        self.label = Label(self.root, textvariable=self.message_text,font=("Courier", 50), wraplength=500, justify=LEFT)
+        self.label.pack()
+
+    def run(self):
+        self.root.mainloop()
+
+    def flash_screen(self, color):
+        self.label.configure(background=color)
+        self.root.configure(background=color)
+
+    def set_message(self, message):
+        self.message_text.set(message)
+        for i in range(0,10):
+            self.flash_screen("white")
+            time.sleep(.1)
+            self.flash_screen("red")
+            time.sleep(.1)
+        self.flash_screen("white")
+
+
 class JPCClient:
     def __init__(self, server_address):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.connect((server_address, JPCProtocol.STANDARD_PORT))
         JPCProtocol(JPCProtocol.HELLO).send(self.server)
-        self.root = Tk()
-        self.root.attributes("-fullscreen", True)
-        self.var = StringVar()
-        self.text = Label(self.root, textvariable=self.var,font=("Courier", 50), wraplength=500)
-        self.text.pack()
-        self.var.set("hello")
+        self.gui = JPCClientGUI()
         threading.Thread(target=self.run).start()
-        self.root.mainloop()
+        self.gui.run()
 
     def run(self):
         try:
@@ -25,7 +49,6 @@ class JPCClient:
             running = True
             while running:
                 data = self.server.recv(64000)
-                print(data)
                 if data:
                     data_list = JPCProtocol.decode(data)
                     for item in data_list:
@@ -53,21 +76,10 @@ class JPCClient:
         }
 
         return switcher[opcode](payload)
-    def flash_screen(self, color):
-        self.root.configure(background=color)
-
 
     def process_tell(self, payload):
         message = payload['message']
-        self.var.set(message)
-        for i in range(0,3):
-            self.flash_screen("black")
-            time.sleep(.5)
-            self.flash_screen("red")
-            time.sleep(.5)
-        self.flash_screen("grey")
-
-       #print(message)
+        self.gui.set_message(message)
         return True
 
     def process_error(self, error_code):
@@ -77,7 +89,6 @@ class JPCClient:
         return True
 
     def process_heartbeat(self, payload):
-        print("heartbeat")
         return True
 
     def send(self, msg):
@@ -92,3 +103,4 @@ class JPCClient:
 
     def send_heartbeat(self):
         JPCProtocol(JPCProtocol.HEARTBEAT).send(self.server)
+

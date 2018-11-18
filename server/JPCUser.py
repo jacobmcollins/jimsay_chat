@@ -67,6 +67,7 @@ class JPCUserList:
                         if t - user.last_heartbeat >= JPCProtocol.HEARTBEAT_TIMEOUT:
                             print('died')
 
+
 class JPCUser:
     def __init__(self, user, mac_address):
         self.user = user

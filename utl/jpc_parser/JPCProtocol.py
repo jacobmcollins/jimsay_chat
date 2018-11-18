@@ -22,9 +22,9 @@ class JPCProtocol:
     STANDARD_PORT = 27272
 
     # byte stuffing
-    BYTE_STUFFING_END = 0x7E
-    BYTE_STUFFING_ESCAPE = 0x7D
-    BYTE_STUFFING_FLIP = 0x20
+    FRAME_BYTE = 0x7E
+    ESCAPE_BYTE = 0x7D
+    XOR_BYTE = 0x20
 
     def __init__(self, opcode, payload=None):
         self.opcode = opcode
@@ -49,11 +49,11 @@ class JPCProtocol:
         data = self.to_json().encode()
         data += JPCProtocol.calculate_crc(data)
         raw_data = bytes([])
-        end = bytes([JPCProtocol.BYTE_STUFFING_END])
+        end = bytes([JPCProtocol.FRAME_BYTE])
         for byte in data:
-            if byte == JPCProtocol.BYTE_STUFFING_END or byte == JPCProtocol.BYTE_STUFFING_ESCAPE:
-                raw_data += bytes([JPCProtocol.BYTE_STUFFING_ESCAPE])
-                raw_data += bytes([byte ^ JPCProtocol.BYTE_STUFFING_FLIP])
+            if byte == JPCProtocol.FRAME_BYTE or byte == JPCProtocol.ESCAPE_BYTE:
+                raw_data += bytes([JPCProtocol.ESCAPE_BYTE])
+                raw_data += bytes([byte ^ JPCProtocol.XOR_BYTE])
             else:
                 raw_data += bytes([byte])
 
@@ -65,16 +65,16 @@ class JPCProtocol:
         i = 0
         while i < len(raw_data):
             byte = raw_data[i]
-            if byte == JPCProtocol.BYTE_STUFFING_END:
+            if byte == JPCProtocol.FRAME_BYTE:
                 if data != b'':
                     crc = JPCProtocol.calculate_crc(data[:-2])
                     if crc == data[-2:]:
                         data_array.append(json.loads(data[:-2].decode()))
                     data = b''
-            elif byte == JPCProtocol.BYTE_STUFFING_ESCAPE:
+            elif byte == JPCProtocol.ESCAPE_BYTE:
                 i += 1
                 byte = raw_data[i]
-                data += bytes([byte ^ JPCProtocol.BYTE_STUFFING_FLIP])
+                data += bytes([byte ^ JPCProtocol.XOR_BYTE])
             else:
                 data += bytes([byte])
             i += 1
