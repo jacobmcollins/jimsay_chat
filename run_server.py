@@ -5,7 +5,9 @@ import threading
 import string
 import os
 import sys
+
 app = Flask(__name__)
+#app.config['DEBUG'] = True
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLD = '/Users/jameskraemer/Documents/JPC/server/gui/Uploads'
 UPLOAD_FOLDER = os.path.join(APP_ROOT, UPLOAD_FOLD)
@@ -54,7 +56,7 @@ def get_message():
     return render_template('index.html', messages=messages[0:10], firstMessage="To " + messageRecipient + ": " + messageFromHTML + "\n")
 
 
-@app.route('/', methods=['GET'])
+@app.route('/index', methods=['GET'])
 def index():
     return render_template('index.html')
 
@@ -62,4 +64,4 @@ def index():
 if __name__ == '__main__':
     server = JPCServer()
     threading.Thread(target=run_server, args=[server]).start()
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
