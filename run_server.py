@@ -3,13 +3,17 @@ from flask import Flask, render_template, request
 
 import threading
 import string
-import os.path
+import os
+import sys
 app = Flask(__name__)
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLD = '/Users/jameskraemer/Documents/JPC/server/gui/Uploads'
 UPLOAD_FOLDER = os.path.join(APP_ROOT, UPLOAD_FOLD)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(os.path.join(app.instance_path, 'Uploads'), exist_ok=True)
+
+path = os.path.dirname(__file__)
+sys.path.append(path)
 
 def run_server(server):
     server.run()

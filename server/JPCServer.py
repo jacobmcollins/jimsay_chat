@@ -2,6 +2,7 @@ import threading
 import time
 import socket
 import string
+import os
 
 from server.JPCUser import JPCUser, JPCUserList
 from utl.jpc_parser.JPCProtocol import JPCProtocol
@@ -15,17 +16,7 @@ class JPCServer:
         threading.Thread(target=self.users.tx_rx_heartbeats).start()
 
     def send_message(self, message, recipient):
-        length = len(message)
-        # do some encryption
-        #encrypted = self.shift_string(message, length)
-        #print(encrypted)
-        #decrypted = self.shift_string(message, length*-1)
-        #print(decrypted)
         self.users.send_message(message, recipient)
-
-    def shift_string(self, my_string, shift):
-        alph_string = string.ascii_letters # string of both uppercase/lowercase letters
-        return ''.join([chr(ord(c)+shift) if c in alph_string else c for c in my_string])
 
     def run(self):
         self.connection.listen(5)

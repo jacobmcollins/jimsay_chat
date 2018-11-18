@@ -12,6 +12,9 @@ class JPCUserList:
 
     def build_whitelist(self, whitelist):
         print(os.getcwd())
+        print(os.getcwd())
+        print(os.getcwd())
+        print(os.getcwd())
         with open(whitelist, "r") as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:
@@ -66,6 +69,7 @@ class JPCUserList:
                         JPCProtocol(JPCProtocol.HEARTBEAT).send(user.connection)
                         if t - user.last_heartbeat >= JPCProtocol.HEARTBEAT_TIMEOUT:
                             print('died')
+
 
 class JPCUser:
     def __init__(self, user, mac_address):
