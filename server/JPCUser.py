@@ -12,6 +12,9 @@ class JPCUserList:
 
     def build_whitelist(self, whitelist):
         print(os.getcwd())
+        print(os.getcwd())
+        print(os.getcwd())
+        print(os.getcwd())
         with open(whitelist, "r") as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:
