@@ -8,14 +8,14 @@ from tkinter import *
 class JPCClientGUI:
     def __init__(self):
         self.root = Tk()
-        #self.root.attributes("-fullscreen", True)
+        self.root.attributes("-fullscreen", True)
         self.message_text = StringVar()
         self.message_text.set("Welcome")
         self.configure_widgets()
 
     def configure_widgets(self):
-        self.label = Label(self.root, textvariable=self.message_text,font=("Courier", 50), wraplength=500, justify=LEFT)
-        self.label.pack()
+        self.label = Label(self.root, textvariable=self.message_text, font=("Helvetica", 50), wraplength=500, justify=LEFT)
+        self.label.pack(expand=True)
 
     def run(self):
         self.root.mainloop()
@@ -27,7 +27,7 @@ class JPCClientGUI:
     def set_message(self, message):
         self.message_text.set(message)
         for i in range(0,10):
-            self.flash_screen("white")
+            self.flash_screen("yellow")
             time.sleep(.1)
             self.flash_screen("red")
             time.sleep(.1)
