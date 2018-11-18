@@ -1,9 +1,5 @@
 import threading
-import time
 import socket
-import string
-import os
-
 from server.JPCUser import JPCUser, JPCUserList
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 
@@ -11,9 +7,9 @@ from utl.jpc_parser.JPCProtocol import JPCProtocol
 class JPCServer:
     def __init__(self):
         self.users = JPCUserList("pi_whitelist.txt")
+        threading.Thread(target=self.users.tx_rx_heartbeats).start()
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection.bind(('', JPCProtocol.STANDARD_PORT))
-        threading.Thread(target=self.users.tx_rx_heartbeats).start()
 
     def send_message(self, message, recipient):
         self.users.send_message(message, recipient)
@@ -31,6 +27,7 @@ class JPCServer:
         try:
             while running:
                 data = connection.recv(64000)
+                print(data)
                 if data:
                     data_list = JPCProtocol.decode(data)
                     for json_data in data_list:

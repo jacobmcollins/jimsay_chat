@@ -81,8 +81,12 @@ class JPCProtocol:
         return data_array
 
     def send(self, sock):
-        raw_data = self.encode()
-        sock.send(raw_data)
+        try:
+            raw_data = self.encode()
+            sock.send(raw_data)
+            return True
+        except:
+            return False
 
     def calculate_crc(data):
         return crc16.crc16xmodem(data).to_bytes(length=2, byteorder='little')

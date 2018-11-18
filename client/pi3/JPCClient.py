@@ -2,67 +2,47 @@ import socket
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 import time
 import threading
-from tkinter import *
-
-
-class JPCClientGUI:
-    def __init__(self):
-        self.root = Tk()
-        #self.root.attributes("-fullscreen", True)
-        self.message_text = StringVar()
-        self.message_text.set("Welcome")
-        self.configure_widgets()
-
-    def configure_widgets(self):
-        self.label = Label(self.root, textvariable=self.message_text,font=("Courier", 50), wraplength=500, justify=LEFT)
-        self.label.pack()
-
-    def run(self):
-        self.root.mainloop()
-
-    def flash_screen(self, color):
-        self.label.configure(background=color)
-        self.root.configure(background=color)
-
-    def set_message(self, message):
-        self.message_text.set(message)
-        for i in range(0,10):
-            self.flash_screen("white")
-            time.sleep(.1)
-            self.flash_screen("red")
-            time.sleep(.1)
-        self.flash_screen("white")
+from client.pi3.JPCClientGUI import JPCClientGUI
 
 
 class JPCClient:
     def __init__(self, server_address):
+        self.server_address = server_address
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.connect((server_address, JPCProtocol.STANDARD_PORT))
-        JPCProtocol(JPCProtocol.HELLO).send(self.server)
+        while self.server.connect_ex((self.server_address, JPCProtocol.STANDARD_PORT)) != 0:
+            time.sleep(1)
         self.gui = JPCClientGUI()
+        print(time.time())
+        JPCProtocol(JPCProtocol.HELLO).send(self.server)
+        self.send_heartbeat()
         threading.Thread(target=self.run).start()
         self.gui.run()
 
     def run(self):
         try:
-            threading.Thread(target=self.send_heartbeats).start()
             running = True
+            t = time.time()
             while running:
+                self.send_heartbeats(t)
                 data = self.server.recv(64000)
                 if data:
                     data_list = JPCProtocol.decode(data)
                     for item in data_list:
                         running = self.process(item)
         except ConnectionResetError:
-            print('Connection Reset')
+            self.server.close()
+            self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            while self.server.connect_ex((self.server_address, JPCProtocol.STANDARD_PORT)) != 0:
+                time.sleep(1)
+            JPCProtocol(JPCProtocol.HELLO).send(self.server)
+            self.send_heartbeat()
+            self.run()
 
-    def send_heartbeats(self):
-        t = time.time()
-        while True:
-            n = time.time()
-            if n - t >= JPCProtocol.HEARTBEAT_INTERVAL:
-                t = n
-                self.send_heartbeat()
+    def send_heartbeats(self, t):
+        n = time.time()
+        if n - t >= JPCProtocol.HEARTBEAT_INTERVAL:
+            t = n
+            self.send_heartbeat()
 
     def process(self, data):
         print(data)
@@ -102,5 +82,7 @@ class JPCClient:
         self.server.close()
 
     def send_heartbeat(self):
+        print(time.time())
         JPCProtocol(JPCProtocol.HEARTBEAT).send(self.server)
+
 
