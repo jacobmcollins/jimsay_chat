@@ -1,34 +1,38 @@
 import time
-from tkinter import *
+import tkinter as tk
 from PIL import ImageTk,Image
 
+w = 'initial'
 
-class JPCClientGUI:
-    def __init__(self):
-        self.root = Tk()
-        self.root.attributes("-fullscreen", True)
-        self.message_text = StringVar()
+
+class Display(tk.Canvas):
+    def __init__(self,  parent, *args, **kwargs):
+        tk.Canvas.__init__(self, parent, *args, **kwargs)
+
+    def current_play(self, option):
+        if option == 'initial':
+            self.initial_display()
+        elif option == 'n' or option == 's':
+            self.ns_display()
+
+    def initial_display(self):
+        # display cat image
+        self.im = Image.open("Rainier.jpg")
+        self.photo_image = ImageTk.PhotoImage(self.im)
+        self.demo = self.create_image(400, 400, image=self.photo_image, anchor='center')
+
+
+class start_gui(tk.Frame):
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self,parent, *args, **kwargs)
+        # create canvas
+        self.canvas = Display(parent, width=800, height=800, background="green")
+        self.message_text = tk.StringVar()
         self.message_text.set("Welcome")
-        self.label = Label(self.root, textvariable=self.message_text,font=("Helvetica", 50), wraplength=500, justify=LEFT)
+        self.label = tk.Label(parent, textvariable=self.message_text,font=("Helvetica", 50), wraplength=500)
         self.label.pack(expand=True)
-        path = "server\gui\Rainier.jpg"
-        import os
-        x = os.path.join(os.getcwd(),path)
-        print(x)
-        self.img = ImageTk.PhotoImage(Image.open(x))
-        self.panel = Label(self.root, image=self.img)
-        self.panel.pack()
-        self.panel.update()
-
-    def start(self):
-        self.root.update()
-        self.root.update_idletasks()
-
-    def flash_screen(self, color):
-        self.label.configure(background=color)
-        self.root.configure(background=color)
-        self.root.update_idletasks()
-        self.root.update()
+        self.canvas.pack()
+        self.canvas.current_play(w)
 
     def set_message(self, message):
         self.message_text.set(message)
@@ -38,5 +42,27 @@ class JPCClientGUI:
             self.flash_screen("red")
             time.sleep(.1)
         self.flash_screen("white")
+        self.update_idletasks()
+        self.update()
+
+    def flash_screen(self, color):
+        self.label.configure(background=color)
+        self.configure(background=color)
+        self.update_idletasks()
+        self.update()
+
+
+class JPCClientGUI:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.attributes("-fullscreen", True)
+        self.g = start_gui(self.root)
         self.root.update_idletasks()
         self.root.update()
+
+    def start(self):
+        self.root.update()
+        self.root.update_idletasks()
+
+    def set_message(self, message):
+        self.g.set_message(message)
