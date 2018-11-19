@@ -12,7 +12,7 @@ class JPCServer:
         self.connection.bind(('', JPCProtocol.STANDARD_PORT))
 
     def send_message(self, message, recipient):
-        self.users.send_message(message, recipient)
+        self.users.send_message(JPCProtocol.MESSAGE_TEXT, message, recipient)
 
     def run(self):
         self.connection.listen(5)

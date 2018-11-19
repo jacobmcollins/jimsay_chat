@@ -37,10 +37,10 @@ class JPCUserList:
                 return user
         return None
 
-    def send_message(self, message, recipient):
+    def send_message(self, message_type, message, recipient):
         user = self.get_by_name(recipient)
         if user and user.connected:
-            packet = JPCProtocol(JPCProtocol.TELL, {'recipient': recipient, 'message': message})
+            packet = JPCProtocol(JPCProtocol.TELL, {'message_type': message_type, 'recipient': recipient, 'message': message})
             user.send(packet)
 
     def update_heartbeat(self, mac):

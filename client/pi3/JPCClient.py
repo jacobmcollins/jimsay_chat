@@ -2,7 +2,7 @@ import socket
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 import time
 from client.pi3.JPCClientGUI import JPCClientGUI
-from client.pi3.MySocket import MySocket
+from client.pi3.ReconnectingSocket import ReconnectingSocket
 
 
 class JPCClient:
@@ -12,7 +12,7 @@ class JPCClient:
         self.gui.start()
 
         # Create server connection
-        self.server = MySocket(server_address)
+        self.server = ReconnectingSocket(server_address)
         self.server.connect()
         self.send_hello()
         self.send_heartbeat()

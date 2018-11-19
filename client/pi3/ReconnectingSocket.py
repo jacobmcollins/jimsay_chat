@@ -3,7 +3,7 @@ import time
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 
 
-class MySocket:
+class ReconnectingSocket:
     def __init__(self, server_address):
         self.address = server_address
         self.sock = None
@@ -38,7 +38,7 @@ class MySocket:
 
 
 if __name__ == '__main__':
-    server = MySocket()
+    server = ReconnectingSocket()
     server.connect("localhost")
     JPCProtocol(JPCProtocol.HELLO).send(server.sock)
     while True:

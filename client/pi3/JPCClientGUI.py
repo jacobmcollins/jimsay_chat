@@ -8,8 +8,8 @@ class JPCClientGUI:
         self.root.attributes("-fullscreen", True)
         self.message_text = StringVar()
         self.message_text.set("Welcome")
-        self.label = Label(self.root, textvariable=self.message_text,font=("Courier", 50), wraplength=500, justify=LEFT)
-        self.label.pack()
+        self.label = Label(self.root, textvariable=self.message_text,font=("Helvetica", 50), wraplength=500, justify=LEFT)
+        self.label.pack(expand=True)
 
     def start(self):
         self.root.update()

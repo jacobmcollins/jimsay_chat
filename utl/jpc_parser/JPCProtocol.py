@@ -26,6 +26,10 @@ class JPCProtocol:
     ESCAPE_BYTE = 0x7D
     XOR_BYTE = 0x20
 
+    # message types
+    MESSAGE_TEXT = 0
+    MESSAGE_IMG = 1
+
     def __init__(self, opcode, payload=None):
         self.opcode = opcode
         self.payload = payload

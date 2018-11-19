@@ -1,5 +1,6 @@
 from server.JPCServer import JPCServer
 from flask import Flask, render_template, request
+from werkzeug.utils import secure_filename
 
 import threading
 import string
@@ -31,10 +32,13 @@ def shift_string(my_string, shift):
 def get_message():
     messageFromHTML = request.form['MessageBox']
     messageRecipient = request.form['chooseRecipient']
-    #messageImage = request.files['MessageImage']
+    try:
+        messageImage = request.files['MessageImage']
+    except:
+        messageImage = None
 
-    #if messageImage :
-    #    messageImage.save(os.path.join(app.instance_path, 'Uploads', secure_filename(messageImage.filename)))
+    if messageImage :
+        messageImage.save(os.path.join(app.instance_path, 'Uploads', secure_filename(messageImage.filename)))
 
     messages = []
     messageLog = open("messageLog.txt", "a")
