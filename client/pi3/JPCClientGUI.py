@@ -7,6 +7,7 @@ w = 'initial'
 
 class Display(tk.Canvas):
     def __init__(self,  parent, *args, **kwargs):
+        self.parent = parent
         tk.Canvas.__init__(self, parent, *args, **kwargs)
 
     def current_play(self, option):
@@ -18,15 +19,16 @@ class Display(tk.Canvas):
     def initial_display(self):
         # display cat image
         self.im = Image.open("Rainier.jpg")
+        self.im = self.im.resize((200,200), Image.ANTIALIAS)
         self.photo_image = ImageTk.PhotoImage(self.im)
-        self.demo = self.create_image(400, 400, image=self.photo_image, anchor='center')
+        self.demo = self.create_image(0, 0, image=self.photo_image, anchor='nw')
 
 
 class start_gui(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self,parent, *args, **kwargs)
         # create canvas
-        self.canvas = Display(parent, width=800, height=800, background="green")
+        self.canvas = Display(parent, width=parent.winfo_screenwidth(), height=parent.winfo_screenheight(), background="white")
         self.message_text = tk.StringVar()
         self.message_text.set("Welcome")
         self.label = tk.Label(parent, textvariable=self.message_text,font=("Helvetica", 50), wraplength=500)
