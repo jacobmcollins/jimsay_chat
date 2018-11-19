@@ -5,7 +5,9 @@ import threading
 import string
 import os
 import sys
+
 app = Flask(__name__)
+#app.config['DEBUG'] = True
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLD = '/Users/jameskraemer/Documents/JPC/server/gui/Uploads'
 UPLOAD_FOLDER = os.path.join(APP_ROOT, UPLOAD_FOLD)
@@ -38,12 +40,7 @@ def get_message():
     messageLog = open("messageLog.txt", "a")
     messageLog.write("To " + messageRecipient + ": " + messageFromHTML + "\n")
 
-    #JPCProtocol(JPCProtocol.SEND, messageFromHTML, messageRecipient)
-    """server.send_message(messageFromHTML, messageRecipient, messageLength)"""
     server.send_message(messageFromHTML, messageRecipient)
-
-    print(messageFromHTML)
-    print(messageRecipient)
 
     messagesFile = open("messageLog.txt", "r")
     for message in messagesFile:

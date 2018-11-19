@@ -18,7 +18,7 @@ class JPCProtocol:
 
     # misc
     HEARTBEAT_INTERVAL = 3
-    HEARTBEAT_TIMEOUT = 5
+    HEARTBEAT_TIMEOUT = 10
     STANDARD_PORT = 27272
 
     # byte stuffing

@@ -60,7 +60,8 @@ class JPCUserList:
                 for user in self.users:
                     if user.connected:
                         JPCProtocol(JPCProtocol.HEARTBEAT).send(user.connection)
-                        if t - user.last_heartbeat >= JPCProtocol.HEARTBEAT_TIMEOUT:
+                        elapsed = t - user.last_heartbeat
+                        if elapsed >= JPCProtocol.HEARTBEAT_TIMEOUT:
                             print('died')
 
 

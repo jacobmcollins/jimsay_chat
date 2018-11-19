@@ -1,6 +1,6 @@
 import threading
 import socket
-from server.JPCUser import JPCUser, JPCUserList
+from server.JPCUser import JPCUserList
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 
 
@@ -27,13 +27,12 @@ class JPCServer:
         try:
             while running:
                 data = connection.recv(64000)
-                print(data)
                 if data:
                     data_list = JPCProtocol.decode(data)
                     for json_data in data_list:
                         print(json_data)
                         self.process(json_data, connection)
-        except ConnectionAbortedError:
+        except:
             print('Connection Aborted')
 
     def process(self, data, connection):
@@ -48,6 +47,7 @@ class JPCServer:
         switcher[opcode](payload, connection)
 
     def process_hello(self, payload, s):
+        self.users.update_heartbeat(payload)
         self.users.establish(payload, s)
 
     def process_heartbeat(self, payload, s):
