@@ -18,13 +18,17 @@ class JPCProtocol:
 
     # misc
     HEARTBEAT_INTERVAL = 3
-    HEARTBEAT_TIMEOUT = 5
+    HEARTBEAT_TIMEOUT = 10
     STANDARD_PORT = 27272
 
     # byte stuffing
     FRAME_BYTE = 0x7E
     ESCAPE_BYTE = 0x7D
     XOR_BYTE = 0x20
+
+    # message types
+    MESSAGE_TEXT = 0
+    MESSAGE_IMG = 1
 
     def __init__(self, opcode, payload=None):
         self.opcode = opcode
@@ -81,8 +85,12 @@ class JPCProtocol:
         return data_array
 
     def send(self, sock):
-        raw_data = self.encode()
-        sock.send(raw_data)
+        try:
+            raw_data = self.encode()
+            sock.send(raw_data)
+            return True
+        except:
+            return False
 
     def calculate_crc(data):
         return crc16.crc16xmodem(data).to_bytes(length=2, byteorder='little')

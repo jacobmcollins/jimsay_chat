@@ -1,71 +1,63 @@
 import socket
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 import time
-import threading
-from tkinter import *
-
-
-class JPCClientGUI:
-    def __init__(self):
-        self.root = Tk()
-        self.root.attributes("-fullscreen", True)
-        self.message_text = StringVar()
-        self.message_text.set("Welcome")
-        self.configure_widgets()
-
-    def configure_widgets(self):
-        self.label = Label(self.root, textvariable=self.message_text, font=("Helvetica", 50), wraplength=500, justify=LEFT)
-        self.label.pack(expand=True)
-
-    def run(self):
-        self.root.mainloop()
-
-    def flash_screen(self, color):
-        self.label.configure(background=color)
-        self.root.configure(background=color)
-
-    def set_message(self, message):
-        self.message_text.set(message)
-        for i in range(0,10):
-            self.flash_screen("yellow")
-            time.sleep(.1)
-            self.flash_screen("red")
-            time.sleep(.1)
-        self.flash_screen("white")
+from client.pi3.JPCClientGUI import JPCClientGUI
+from client.pi3.ReconnectingSocket import ReconnectingSocket
 
 
 class JPCClient:
     def __init__(self, server_address):
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.connect((server_address, JPCProtocol.STANDARD_PORT))
-        JPCProtocol(JPCProtocol.HELLO).send(self.server)
+        # Create GUI
         self.gui = JPCClientGUI()
-        threading.Thread(target=self.run).start()
-        self.gui.run()
+        self.gui.start()
+
+        # Create server connection
+        self.server = ReconnectingSocket(server_address)
+        self.server.connect()
+        self.send_hello()
+        self.send_heartbeat()
+
+    def send_hello(self):
+        print('tx: {} - {}'.format(time.time(), 'hello'))
+        JPCProtocol(JPCProtocol.HELLO).send(self.server)
+
+    def send_heartbeat(self):
+        print('tx: {} - {}'.format(time.time(), 'hrtbt'))
+        JPCProtocol(JPCProtocol.HEARTBEAT).send(self.server)
 
     def run(self):
         try:
-            threading.Thread(target=self.send_heartbeats).start()
-            running = True
-            while running:
-                data = self.server.recv(64000)
-                if data:
-                    data_list = JPCProtocol.decode(data)
-                    for item in data_list:
-                        running = self.process(item)
-        except ConnectionResetError:
-            print('Connection Reset')
+            t = time.time()
+            while True:
+                self.process_packets()
+                self.handle_heartbeats(t)
+        except:
+            self.re_run()
 
-    def send_heartbeats(self):
-        t = time.time()
-        while True:
-            n = time.time()
-            if n - t >= JPCProtocol.HEARTBEAT_INTERVAL:
-                t = n
-                self.send_heartbeat()
+    def process_packets(self):
+        try:
+            data = self.server.recv()
+            for item in data:
+                print('rx: {} - {})'.format(time.time(), item))
+                self.process(item)
+        except:
+            raise socket.error
+
+    def handle_heartbeats(self, t):
+        n = time.time()
+        elapsed = n - t
+        if self.server.connected and elapsed >= JPCProtocol.HEARTBEAT_INTERVAL:
+            self.send_heartbeat()
+            if elapsed >= JPCProtocol.HEARTBEAT_TIMEOUT:
+                "died"
+
+    def re_run(self):
+        self.server.reconnect()
+        self.send_hello()
+        self.send_heartbeat()
+        self.run()
 
     def process(self, data):
-        print(data)
         opcode = data['opcode']
         payload = data['payload']
 
@@ -75,32 +67,25 @@ class JPCClient:
             JPCProtocol.HEARTBEAT:   self.process_heartbeat
         }
 
-        return switcher[opcode](payload)
+        switcher[opcode](payload)
 
     def process_tell(self, payload):
         message = payload['message']
         self.gui.set_message(message)
-        return True
 
     def process_error(self, error_code):
         if error_code == JPCProtocol.ERROR_TIMED_OUT:
             self.close()
             return False
-        return True
 
     def process_heartbeat(self, payload):
-        return True
+        pass
 
     def send(self, msg):
         JPCProtocol(JPCProtocol.SEND, msg).send(self.server)
 
-    def receive(self):
-        recv_data = self.server.recv(10000000)
-        return recv_data
-
     def close(self):
         self.server.close()
 
-    def send_heartbeat(self):
-        JPCProtocol(JPCProtocol.HEARTBEAT).send(self.server)
+
 

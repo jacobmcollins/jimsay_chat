@@ -1,7 +1,6 @@
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 import time
 import csv
-import os
 
 
 class JPCUserList:
@@ -11,10 +10,6 @@ class JPCUserList:
             self.build_whitelist(whitelist)
 
     def build_whitelist(self, whitelist):
-        print(os.getcwd())
-        print(os.getcwd())
-        print(os.getcwd())
-        print(os.getcwd())
         with open(whitelist, "r") as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:
@@ -26,10 +21,9 @@ class JPCUserList:
         user = JPCUser(name, mac)
         self.users.append(user)
 
-    def establish(self, mac, socket, t=time.time()):
+    def establish(self, mac, socket):
         user = self.get_by_mac(mac)
         user.establish(socket)
-        user.update_heartbeat(t)
 
     def get_by_name(self, name):
         for user in self.users:
@@ -43,16 +37,15 @@ class JPCUserList:
                 return user
         return None
 
-    def send_message(self, message, recipient):
+    def send_message(self, message_type, message, recipient):
         user = self.get_by_name(recipient)
         if user and user.connected:
-            packet = JPCProtocol(JPCProtocol.TELL, {'recipient': recipient, 'message': message})
+            packet = JPCProtocol(JPCProtocol.TELL, {'message_type': message_type, 'recipient': recipient, 'message': message})
             user.send(packet)
 
     def update_heartbeat(self, mac):
         user = self.get_by_mac(mac)
         if user:
-            print('heartbeat')
             user.update_heartbeat(time.time())
             return True
         else:
@@ -67,7 +60,8 @@ class JPCUserList:
                 for user in self.users:
                     if user.connected:
                         JPCProtocol(JPCProtocol.HEARTBEAT).send(user.connection)
-                        if t - user.last_heartbeat >= JPCProtocol.HEARTBEAT_TIMEOUT:
+                        elapsed = t - user.last_heartbeat
+                        if elapsed >= JPCProtocol.HEARTBEAT_TIMEOUT:
                             print('died')
 
 

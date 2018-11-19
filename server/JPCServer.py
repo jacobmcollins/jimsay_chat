@@ -1,22 +1,18 @@
 import threading
-import time
 import socket
-import string
-import os
-
-from server.JPCUser import JPCUser, JPCUserList
+from server.JPCUser import JPCUserList
 from utl.jpc_parser.JPCProtocol import JPCProtocol
 
 
 class JPCServer:
     def __init__(self):
         self.users = JPCUserList("pi_whitelist.txt")
+        threading.Thread(target=self.users.tx_rx_heartbeats).start()
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection.bind(('', JPCProtocol.STANDARD_PORT))
-        threading.Thread(target=self.users.tx_rx_heartbeats).start()
 
     def send_message(self, message, recipient):
-        self.users.send_message(message, recipient)
+        self.users.send_message(JPCProtocol.MESSAGE_TEXT, message, recipient)
 
     def run(self):
         self.connection.listen(5)
@@ -36,7 +32,7 @@ class JPCServer:
                     for json_data in data_list:
                         print(json_data)
                         self.process(json_data, connection)
-        except ConnectionAbortedError:
+        except:
             print('Connection Aborted')
 
     def process(self, data, connection):
@@ -51,6 +47,7 @@ class JPCServer:
         switcher[opcode](payload, connection)
 
     def process_hello(self, payload, s):
+        self.users.update_heartbeat(payload)
         self.users.establish(payload, s)
 
     def process_heartbeat(self, payload, s):

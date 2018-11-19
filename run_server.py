@@ -1,5 +1,6 @@
 from server.JPCServer import JPCServer
 from flask import Flask, render_template, request
+from werkzeug.utils import secure_filename
 
 import threading
 import string
@@ -31,21 +32,19 @@ def shift_string(my_string, shift):
 def get_message():
     messageFromHTML = request.form['MessageBox']
     messageRecipient = request.form['chooseRecipient']
-    #messageImage = request.files['MessageImage']
+    try:
+        messageImage = request.files['MessageImage']
+    except:
+        messageImage = None
 
-    #if messageImage :
-    #    messageImage.save(os.path.join(app.instance_path, 'Uploads', secure_filename(messageImage.filename)))
+    if messageImage :
+        messageImage.save(os.path.join(app.instance_path, 'Uploads', secure_filename(messageImage.filename)))
 
     messages = []
     messageLog = open("messageLog.txt", "a")
     messageLog.write("To " + messageRecipient + ": " + messageFromHTML + "\n")
 
-    #JPCProtocol(JPCProtocol.SEND, messageFromHTML, messageRecipient)
-    """server.send_message(messageFromHTML, messageRecipient, messageLength)"""
     server.send_message(messageFromHTML, messageRecipient)
-
-    print(messageFromHTML)
-    print(messageRecipient)
 
     messagesFile = open("messageLog.txt", "r")
     for message in messagesFile:
@@ -56,7 +55,7 @@ def get_message():
     return render_template('index.html', messages=messages[0:10], firstMessage="To " + messageRecipient + ": " + messageFromHTML + "\n")
 
 
-@app.route('/index', methods=['GET'])
+@app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
@@ -64,4 +63,4 @@ def index():
 if __name__ == '__main__':
     server = JPCServer()
     threading.Thread(target=run_server, args=[server]).start()
-    app.run(host='0.0.0.0', port=5000)
+    app.run()
