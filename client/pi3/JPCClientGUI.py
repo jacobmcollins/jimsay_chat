@@ -19,7 +19,7 @@ class Display(tk.Canvas):
     def initial_display(self):
         # display cat image
         self.im = Image.open("Rainier.jpg")
-        self.im = self.im.resize((200,200), Image.ANTIALIAS)
+        self.im = self.im.resize((self.winfo_screenwidth(),self.winfo_screenheight()), Image.ANTIALIAS)
         self.photo_image = ImageTk.PhotoImage(self.im)
         self.demo = self.create_image(0, 0, image=self.photo_image, anchor='nw')
 
