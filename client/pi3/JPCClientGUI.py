@@ -57,7 +57,7 @@ class start_gui(tk.Frame):
 class JPCClientGUI:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.attributes("-fullscreen", True)
+        #self.root.attributes("-fullscreen", True)
         self.g = start_gui(self.root)
         self.root.update_idletasks()
         self.root.update()

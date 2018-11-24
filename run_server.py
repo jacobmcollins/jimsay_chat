@@ -39,6 +39,8 @@ def get_message():
 
     if messageImage :
         messageImage.save(os.path.join(app.instance_path, 'Uploads', secure_filename(messageImage.filename)))
+        server.send_image(messageImage, messageRecipient)
+        pass
 
     messages = []
     messageLog = open("messageLog.txt", "a")

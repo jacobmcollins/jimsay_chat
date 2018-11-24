@@ -14,6 +14,16 @@ class JPCServer:
     def send_message(self, message, recipient):
         self.users.send_message(JPCProtocol.MESSAGE_TEXT, message, recipient)
 
+    def send_image(self, image_file, recipient):
+        buff = b''
+        with open("Rainier.jpg", "rb") as file:
+            byte = file.read(1)
+            while byte:
+                buff += byte
+                byte = file.read(1)
+        y = 0
+        self.users.send_message(JPCProtocol.MESSAGE_IMG, buff, recipient)
+
     def run(self):
         self.connection.listen(5)
         while True:

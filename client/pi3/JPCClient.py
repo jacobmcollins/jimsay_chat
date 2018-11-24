@@ -31,6 +31,8 @@ class JPCClient:
             while True:
                 self.process_packets()
                 self.handle_heartbeats(t)
+                self.gui.root.update()
+                self.gui.root.update()
         except:
             self.re_run()
 
@@ -71,6 +73,7 @@ class JPCClient:
 
     def process_tell(self, payload):
         message = payload['message']
+        message_type = payload['message_type']
         self.gui.set_message(message)
 
     def process_error(self, error_code):
