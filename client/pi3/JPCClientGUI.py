@@ -24,6 +24,8 @@ class Display(tk.Canvas):
         self.im = self.im.resize((self.winfo_screenwidth(),self.winfo_screenheight()), Image.ANTIALIAS)
         self.photo_image = ImageTk.PhotoImage(self.im)
         self.demo = self.create_image(0, 0, image=self.photo_image, anchor='nw')
+        self.update_idletasks()
+        self.update()
 
 
 class start_gui(tk.Frame):
