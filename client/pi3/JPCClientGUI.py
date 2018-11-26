@@ -17,8 +17,10 @@ class Display(tk.Canvas):
             self.ns_display()
 
     def initial_display(self):
-        # display cat image
-        self.im = Image.open("Rainier.jpg")
+        self.set_image("Rainier.jpg")
+
+    def set_image(self, file):
+        self.im = Image.open(file)
         self.im = self.im.resize((self.winfo_screenwidth(),self.winfo_screenheight()), Image.ANTIALIAS)
         self.photo_image = ImageTk.PhotoImage(self.im)
         self.demo = self.create_image(0, 0, image=self.photo_image, anchor='nw')
@@ -47,6 +49,9 @@ class start_gui(tk.Frame):
         self.update_idletasks()
         self.update()
 
+    def set_image(self, file):
+        self.canvas.set_image(file)
+
     def flash_screen(self, color):
         self.label.configure(background=color)
         self.configure(background=color)
@@ -68,3 +73,6 @@ class JPCClientGUI:
 
     def set_message(self, message):
         self.g.set_message(message)
+
+    def set_image(self, file):
+        self.g.set_image(file)

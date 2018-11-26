@@ -74,7 +74,14 @@ class JPCClient:
     def process_tell(self, payload):
         message = payload['message']
         message_type = payload['message_type']
-        self.gui.set_message(message)
+        if message_type == JPCProtocol.MESSAGE_TEXT:
+            self.gui.set_message(message)
+        elif message_type == JPCProtocol.MESSAGE_IMG:
+            import binascii
+            x = binascii.unhexlify(message.encode('utf-8'))
+            with open("temp.gif", "wb") as file:
+                file.write(x)
+            self.gui.set_image("temp.gif")
 
     def process_error(self, error_code):
         if error_code == JPCProtocol.ERROR_TIMED_OUT:

@@ -11,18 +11,22 @@ class JPCServer:
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection.bind(('', JPCProtocol.STANDARD_PORT))
 
+    # with open("abc.gif", "rb") as file:
+    #     byte = file.read(1)
+    #     while byte:
+    #         buff += byte
+    #         byte = file.read(1)
+    def send_image(self, image_file, recipient):
+        file = open(image_file, "rb")
+        buff = file.read()
+        import binascii
+        hex_data = binascii.hexlify(buff)
+        str_data = hex_data.decode('utf-8')
+        self.users.send_message(JPCProtocol.MESSAGE_IMG, str_data, recipient)
+
     def send_message(self, message, recipient):
         self.users.send_message(JPCProtocol.MESSAGE_TEXT, message, recipient)
 
-    def send_image(self, image_file, recipient):
-        buff = b''
-        with open("Rainier.jpg", "rb") as file:
-            byte = file.read(1)
-            while byte:
-                buff += byte
-                byte = file.read(1)
-        y = 0
-        self.users.send_message(JPCProtocol.MESSAGE_IMG, buff, recipient)
 
     def run(self):
         self.connection.listen(5)
